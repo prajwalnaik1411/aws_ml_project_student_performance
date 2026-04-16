@@ -8,20 +8,22 @@ branches:
 env:
 AWS_REGION: ap-south-1
 ECR_REPOSITORY: aws_ml_project_student_performance
-ECS_SERVICE: your-service-name
-ECS_CLUSTER: your-cluster-name
+ECS_SERVICE: REPLACE_ME_SERVICE
+ECS_CLUSTER: REPLACE_ME_CLUSTER
 ECS_TASK_DEFINITION: .aws/task-definition.json
-CONTAINER_NAME: your-container-name
+CONTAINER_NAME: REPLACE_ME_CONTAINER
 
 permissions:
 contents: read
 
 jobs:
 deploy:
+name: Build and Deploy
 runs-on: ubuntu-latest
 
+```
 steps:
-  - name: Checkout
+  - name: Checkout code
     uses: actions/checkout@v4
 
   - name: Configure AWS credentials
@@ -31,11 +33,11 @@ steps:
       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws-region: ${{ env.AWS_REGION }}
 
-  - name: Login to ECR
+  - name: Login to Amazon ECR
     id: login-ecr
     uses: aws-actions/amazon-ecr-login@v2
 
-  - name: Build & Push Image
+  - name: Build, tag, and push Docker image
     id: build-image
     env:
       ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -45,7 +47,7 @@ steps:
       docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
       echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  - name: Update Task Definition
+  - name: Render new task definition
     id: task-def
     uses: aws-actions/amazon-ecs-render-task-definition@v1
     with:
@@ -60,3 +62,4 @@ steps:
       service: ${{ env.ECS_SERVICE }}
       cluster: ${{ env.ECS_CLUSTER }}
       wait-for-service-stability: true
+```
